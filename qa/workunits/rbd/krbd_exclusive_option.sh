@@ -50,7 +50,7 @@ EOF
 
 function assert_unlocked() {
     rados -p rbd --format=json lock info rbd_header.$IMAGE_ID rbd_lock |
-        grep '"lockers":[]'
+        grep '"lockers":\[\]'
 }
 
 SYSFS_DIR="/sys/bus/rbd/devices"
