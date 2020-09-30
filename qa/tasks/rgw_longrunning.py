@@ -47,9 +47,10 @@ def do_auto_calculate_io(clients, config):
     # get the cluster size
 
     cluster_size = get_cluster_size_info(clients)
-    available = cluster_size['AVAIL']
-    size, mem_unit = int(float(available[:-3])), available[-3:]
-    log.info('size: %s, mem_unit: %s' %(size, mem_unit))
+    log.info('Cluster size values: %s' % cluster_size)
+    size = float(cluster_size['SIZE'])
+    mem_unit = cluster_size['AVAIL']
+    log.info('size: %s, mem_unit: %s' % (size, mem_unit))
     available = size * MEM_UNITS_CONV.get(mem_unit)  # convert size to mbs
     replication = 3  # assuming the replication size is 3
     log.info('available size: %s' % available)
@@ -162,7 +163,8 @@ def task(ctx, config):
             'source',
             'venv/bin/activate',
             run.Raw(';'),
-            run.Raw('pip3 install boto boto3 names PyYaml ConfigParser'),
+            run.Raw('pip3 install boto boto3 names PyYaml ConfigParser python-swiftclient '
+                    'swiftly simplejson rgwadmin'),
             run.Raw(';'),
             'deactivate'])
     time.sleep(60)
@@ -171,8 +173,14 @@ def task(ctx, config):
     log.info('starting the tests after sleep of 60 secs')
     time.sleep(60)
     clients[0].run(
-        args=[run.Raw(
-            'sudo venv/bin/python3 %s -c %s ' % (script, config_file))])
+        args=[
+            'source',
+            'venv/bin/activate',
+            run.Raw(';'),
+            run.Raw('python3 {script} -c {config_file}'.format(script=script, config_file=config_file)),
+            run.Raw(';'),
+            'deactivate'])
+
     try:
         yield
     finally:
